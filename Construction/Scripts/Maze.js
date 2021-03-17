@@ -21,6 +21,7 @@
 
 /**@param {maze} maze*/
 window.Maze = function (maze) {
+    //#region public properties
     this.validate = function () {
         var error = validatePropertiesExist(maze, ['rooms'], 'maze');
         if (error) {
@@ -33,6 +34,44 @@ window.Maze = function (maze) {
             }
         }
     }
+
+    this.play = function () {
+        //create player at random room
+        var roomIndex = Math.floor(Math.random() * maze.rooms.length);
+        var player = new Player(roomIndex);
+
+        //render the current room.
+        renderRoom(player.roomIndex);
+    };
+
+    //#endregion
+    //#region private properties
+    function renderRoom(roomIndex) {
+        var room = maze.rooms[roomIndex];
+        var roomDiv = document.createElement('div');
+        roomDiv.classList.add('room');
+        //Render items
+        for (var i = 0; i < room.items.length; i++) {
+            var item = room.items[i];
+            var itemDiv = document.createElement('div');
+            itemDiv.classList.add('item', item.type);
+
+            roomDiv.appendChild(itemDiv);
+        }
+
+        //Render pasasges
+        forEachPassage(room.passages, function (passage, passageName) {
+            var passageDiv = document.createElement('div');
+            passageDiv.classList.add('passage', passageName);
+
+            roomDiv.appendChild(passageDiv);
+        });
+
+
+        document.getElementById('game').appendChild(roomDiv);
+    }
+
+
     /**@param {room} room*/
     function validateRoom(roomIndex) {
         var room = maze.rooms[roomIndex];
@@ -128,4 +167,5 @@ window.Maze = function (maze) {
             func(passage, keys[i]);
         }
     }
+    //#endregion
 };

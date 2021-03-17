@@ -4,11 +4,13 @@
 <head>
 	<meta charset="utf-8" />
 	<title>Maze Game</title>
+	<script src="../Scripts/Player.js"></script>
 	<script src="../Scripts/Maze.js"></script>
 	<script src="../Scripts/Menu.js"></script>
+	<link rel="stylesheet" type="text/css" href="../style/display.css">
 </head>
 <body>
-	<div id="mainMenu">
+	<div id="mainMenu" class="backGround mainMenu">
 		<button class="menuButton" id="configureMaze">
 			Configure Maze
 		</button>
@@ -16,8 +18,6 @@
 			Start New
 		</button>
 	</div>
-	<div id="game">
-
-	</div>
+	<div id="game" class="backGround game" style="display: none;"></div>
 </body>
 </html>
