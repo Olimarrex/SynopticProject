@@ -1,25 +1,77 @@
+'use strict';
 (function () {
+    var currConfig;
     var currMaze;
+    var currPlayer;
 
     window.addEventListener('load', function (e) {
-        var btnStartNew = document.getElementById('startNew');
-        var btnConfigureMaze = document.getElementById('configureMaze');
         var mainMenu = document.getElementById('mainMenu');
         var game = document.getElementById('game');
-        btnStartNew.addEventListener('click', function () {
-            play();
-        });
-        btnConfigureMaze.addEventListener('click', function () {
-            currMaze = new Maze();
-        });
+        var btnStartNew = document.getElementById('startNew');
+        var btnContinue = document.getElementById('continue');
+        var btnConfigureMaze = document.getElementById('configureMaze');
+        var btnPause = document.getElementById('pause');
+        var btnDropCoin = document.getElementById('dropCoin');
+        configureButtons();
 
-        function play() {
+        function play(player) {
             mainMenu.style.display = 'none';
             game.style.display = '';
-            currMaze.play();
+            currMaze.onWin = function () {
+                btnContinue.style.display = 'none';
+                toMenu();
+            }
+            currMaze.play(currPlayer);
         }
-        function pause() {
 
+        function toMenu() {
+            mainMenu.style.display = '';
+            game.style.display = 'none';
+            currMaze.pause();
+        }
+        function dropCoin() {
+            if (currPlayer.wealth > 0) {
+                currPlayer.wealth--;
+                currMaze.addItem(currPlayer.roomIndex, { type: 'treasure', wealth: 1, name: 'coin' });
+            }
+            else {
+                alert('you must have at least one coin to drop!');
+            }
+        };
+        function configureButtons() {
+            btnStartNew.addEventListener('click', function () {
+                currMaze = new Maze(JSON.parse(currConfig));
+                currPlayer = new Player(Math.floor(Math.random() * currMaze.getRoomCount()));
+                play();
+            });
+            btnContinue.addEventListener('click', function () {
+                play();
+            });
+            btnPause.addEventListener('click', function () {
+                btnContinue.style.display = '';
+                toMenu();
+            });
+            btnDropCoin.addEventListener('click', function () {
+                dropCoin();
+            });
+            btnConfigureMaze.addEventListener('click', function () {
+                var input = prompt('paste the content of the JSON file you need here');
+                try {
+                    var config = JSON.parse(input);
+                    var maze = new Maze(config);
+                    var error = maze.validate();
+                    if (error) {
+                        alert(error);
+                    }
+                    else {
+                        currMaze = maze;
+                        currConfig = input;
+                    }
+                }
+                catch (error) {
+                    alert('Invalid JSON supplied: ' + error.message);
+                }
+            });
         }
     });
 
@@ -33,141 +85,6 @@
                             "type": "treasure",
                             "name": "Gold",
                             "wealth": 100
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
-                        },
-                        {
-                            "type": "threat",
-                            "name": "Troll",
-                            "defeat": "Club"
                         },
                         {
                             "type": "threat",
@@ -219,6 +136,7 @@
                 }
             ]
         };
+        currConfig = JSON.stringify(config);
         currMaze = new Maze(config);
         var error = currMaze.validate();
         if (error) {

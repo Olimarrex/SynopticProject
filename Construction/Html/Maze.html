@@ -7,7 +7,9 @@
 	<script src="../Scripts/Player.js"></script>
 	<script src="../Scripts/Maze.js"></script>
 	<script src="../Scripts/Menu.js"></script>
-	<link rel="stylesheet" type="text/css" href="../style/display.css">
+	<link rel="stylesheet" type="text/css" href="../style/global.css">
+	<link rel="stylesheet" type="text/css" href="../style/menu.css">
+	<link rel="stylesheet" type="text/css" href="../style/game.css">
 </head>
 <body>
 	<div id="mainMenu" class="backGround mainMenu">
@@ -15,9 +17,22 @@
 			Configure Maze
 		</button>
 		<button class="menuButton" id="startNew">
-			Start New
+			Start New Game
+		</button>
+		<button class="menuButton" id="continue" style="display: none;">
+			Continue Game
 		</button>
 	</div>
-	<div id="game" class="backGround game" style="display: none;"></div>
+	<div id="game" class="backGround game" style="display: none;">
+		<div id="ui" class="gameUi">
+			<button class="menuButton" id="dropCoin">
+				Drop Coin
+			</button>
+			<button class="menuButton" id="pause">
+				Return To Menu
+			</button>
+		</div>
+		<div id="roomHolder" class="roomHolder"></div>
+	</div>
 </body>
 </html>

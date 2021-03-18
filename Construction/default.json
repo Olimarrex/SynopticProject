@@ -23,6 +23,9 @@
 					"isExit": false,
 					"targetRoom": 1,
 					"targetPassage": "west"
+				},
+				"north": {
+					
 				}
 			}
 		},

@@ -21,11 +21,15 @@
 
 /**@param {maze} maze*/
 window.Maze = function (maze) {
+    var self = this;
     //#region public properties
     this.validate = function () {
         var error = validatePropertiesExist(maze, ['rooms'], 'maze');
         if (error) {
             return error;
+        }
+        if (maze.rooms.length === 0) {
+            return 'must have at least one room!';
         }
         for (var i = 0; i < maze.rooms.length; i++) {
             error = validateRoom(i);
@@ -35,42 +39,120 @@ window.Maze = function (maze) {
         }
     }
 
-    this.play = function () {
-        //create player at random room
-        var roomIndex = Math.floor(Math.random() * maze.rooms.length);
-        var player = new Player(roomIndex);
-
+    this.play = function (newPlayer) {
+        if (newPlayer) {
+            player = newPlayer;
+        }
         //render the current room.
-        renderRoom(player.roomIndex);
+        goToRoom(player.roomIndex);
+    };
+
+    this.pause = function () { };
+
+    //expose only needed external info to keep maze encapsulated.
+    this.getRoomCount = function () {
+        return maze.rooms.length;
+    }
+
+    this.addItem = function (roomIndex, item) {
+        maze.rooms[roomIndex].items.push(item);
+        if (player.roomIndex === roomIndex) {
+            //render the item and add it.
+            var itemDivs = document.getElementById('itemHolder').appendChild(renderItem(roomIndex, maze.rooms[roomIndex].items.length - 1))
+        }
     };
 
     //#endregion
     //#region private properties
-    function renderRoom(roomIndex) {
+    var player;
+
+    function goToRoom(roomIndex) {
+        player.roomIndex = roomIndex;
+
         var room = maze.rooms[roomIndex];
         var roomDiv = document.createElement('div');
         roomDiv.classList.add('room');
+
+        var roomImg = document.createElement('img');
+        roomImg.src = '../Assets/Room.png';
+        roomImg.classList.add('roomImage')
+        roomDiv.appendChild(roomImg);
+
+        var itemHolderDiv = document.createElement('div');
+        itemHolderDiv.classList.add('itemHolder');
+        itemHolderDiv.id = 'itemHolder';
+
         //Render items
         for (var i = 0; i < room.items.length; i++) {
-            var item = room.items[i];
-            var itemDiv = document.createElement('div');
-            itemDiv.classList.add('item', item.type);
-
-            roomDiv.appendChild(itemDiv);
+            itemHolderDiv.appendChild(renderItem(roomIndex, i));
         }
 
         //Render pasasges
         forEachPassage(room.passages, function (passage, passageName) {
             var passageDiv = document.createElement('div');
-            passageDiv.classList.add('passage', passageName);
-
+            passageDiv.classList.add('passage', 'interactive', passageName);
+            passageDiv.addEventListener('click', function () {
+                //If there are no threats
+                if (!room.items.some(function (item) { return item.type === 'threat' })) {
+                    if (passage.isExit) {
+                        alert('you found the exit! your current wealth: ' + player.wealth);
+                        if (self.onWin) {
+                            self.onWin();
+                        }
+                    }
+                    else {
+                        goToRoom(passage.targetRoom);
+                    }
+                }
+                else {
+                    alert('you must defeat all threats before venturing forth');
+                }
+            });
             roomDiv.appendChild(passageDiv);
         });
 
+        roomDiv.appendChild(itemHolderDiv);
 
-        document.getElementById('game').appendChild(roomDiv);
+        //clear any pre-existing room elements.
+        var gameDiv = document.getElementById('roomHolder');
+        gameDiv.innerHTML = '';
+        gameDiv.appendChild(roomDiv);
     }
 
+    function renderItem(roomIndex, itemIndex) {
+        var room = maze.rooms[roomIndex];
+        var item = room.items[itemIndex];
+        var itemDiv = document.createElement('div');
+        itemDiv.classList.add('item', 'interactive', item.type);
+        itemDiv.addEventListener('click', function () {
+            //index might have changed since - update variable.
+            itemIndex = maze.rooms[roomIndex].items.indexOf(item);
+            var itemHolderDiv = document.getElementById('itemHolder');
+            if (item.type === 'treasure') {
+                player.wealth += item.wealth;
+                //remove from the screen & remove from maze object.
+                room.items.splice(itemIndex, 1);
+                itemHolderDiv.children[itemIndex].remove();
+                alert('picked up a ' + item.name + ' for ' + item.wealth + ' wealth, current wealth: ' + player.wealth);
+            }
+            else {
+                var killStr = prompt('how do you deal with the ' + item.name);
+                if (killStr != null) {
+                    if (killStr.toLowerCase() === item.defeat.toLowerCase()) {
+                        alert('you defeated the ' + item.name);
+                        //remove from the screen & remove from maze object.
+                        room.items.splice(itemIndex, 1);
+                        itemHolderDiv.children[itemIndex].remove()
+                    }
+                    else {
+                        alert('failed to defeat the ' + item.name);
+                    }
+                }
+            }
+        });
+
+        return itemDiv;
+    }
 
     /**@param {room} room*/
     function validateRoom(roomIndex) {
