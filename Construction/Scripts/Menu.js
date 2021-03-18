@@ -29,6 +29,7 @@
             game.style.display = 'none';
             currMaze.pause();
         }
+
         function dropCoin() {
             if (currPlayer.wealth > 0) {
                 currPlayer.wealth--;
@@ -37,7 +38,8 @@
             else {
                 alert('you must have at least one coin to drop!');
             }
-        };
+        }
+
         function configureButtons() {
             btnStartNew.addEventListener('click', function () {
                 currMaze = new Maze(JSON.parse(currConfig));
@@ -56,20 +58,22 @@
             });
             btnConfigureMaze.addEventListener('click', function () {
                 var input = prompt('paste the content of the JSON file you need here');
-                try {
-                    var config = JSON.parse(input);
-                    var maze = new Maze(config);
-                    var error = maze.validate();
-                    if (error) {
-                        alert(error);
+                if (input !== null) {
+                    try {
+                        var config = JSON.parse(input);
+                        var maze = new Maze(config);
+                        var error = maze.validate();
+                        if (error) {
+                            alert(error);
+                        }
+                        else {
+                            currMaze = maze;
+                            currConfig = input;
+                        }
                     }
-                    else {
-                        currMaze = maze;
-                        currConfig = input;
+                    catch (error) {
+                        alert('Invalid JSON supplied: ' + error.message);
                     }
-                }
-                catch (error) {
-                    alert('Invalid JSON supplied: ' + error.message);
                 }
             });
         }

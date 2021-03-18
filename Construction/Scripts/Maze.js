@@ -24,18 +24,29 @@ window.Maze = function (maze) {
     var self = this;
     //#region public properties
     this.validate = function () {
-        var error = validatePropertiesExist(maze, ['rooms'], 'maze');
-        if (error) {
-            return error;
-        }
-        if (maze.rooms.length === 0) {
-            return 'must have at least one room!';
-        }
-        for (var i = 0; i < maze.rooms.length; i++) {
-            error = validateRoom(i);
+        try {
+            var error = validatePropertiesExist(maze, ['rooms'], 'maze');
             if (error) {
                 return error;
             }
+            if (!Array.isArray(maze.rooms)) {
+                return 'the rooms property must be a list!';
+            }
+            if (maze.rooms.length === 0) {
+                return 'must have at least one room!';
+            }
+            for (var i = 0; i < maze.rooms.length; i++) {
+                error = validateRoom(i);
+                if (error) {
+                    return error;
+                }
+            }
+            if (exitCount === 0) {
+                return 'A maze must have exactly one exit!';
+            }
+        }
+        catch (exception) {
+            return 'error occured when validating JSON: ' + exception.message;
         }
     }
 
@@ -65,6 +76,7 @@ window.Maze = function (maze) {
     //#endregion
     //#region private properties
     var player;
+    var exitCount = 0;
 
     function goToRoom(roomIndex) {
         player.roomIndex = roomIndex;
@@ -157,12 +169,15 @@ window.Maze = function (maze) {
     /**@param {room} room*/
     function validateRoom(roomIndex) {
         var room = maze.rooms[roomIndex];
-
+        var roomPrefix = 'room number: ' + roomIndex;
         var error = validatePropertiesExist(room, ['items', 'passages'], 'room: ' + roomIndex);
         if (error) {
             return error;
         }
 
+        if (!Array.isArray(room.items)) {
+            return roomPrefix + ' must have items as a list';
+        }
         for (var i = 0; i < room.items.length; i++) {
             error = validateItem(roomIndex, i);
             if (error) {
@@ -170,11 +185,24 @@ window.Maze = function (maze) {
             }
         }
 
+        if (typeof (room.passages) !== 'object') {
+            return roomPrefix + ' must have passages as an object';
+        }
+        var hasPassage = false;
         forEachPassage(room.passages, function (passage, passageName) {
+            if (['north', 'east', 'south', 'west'].indexOf(passageName) === -1) {
+                error = roomPrefix + ' ' + passageName + ' is not a valid passage name, must be: south, north, east, or west';
+            }
+            hasPassage = true;
             if (!error) {
                 error = validatePassage(roomIndex, passageName);
             }
         });
+
+        if (!hasPassage) {
+            return 'room number: ' + roomIndex + ' must have at least one passage';
+        }
+
         if (error) {
             return error;
         }
@@ -196,23 +224,53 @@ window.Maze = function (maze) {
 
             //check to ensure passages have mirrored targets
             var targetPassage = getTargetPassage(passage);
-            if (getTargetPassage(targetPassage) !== passage) {
-                return passageDesc + ' doesn\'t have a mirrored target! Ensure that the passages target each other.';
+            if (targetPassage === null) {
+                //target passage doesn't exist
+                var targetRoom = maze.rooms[passage.targetRoom];
+                if (!targetRoom) {
+                    //target room doesn't exist
+                    return passageDesc + ' has an invalid tagetRoom.';
+                }
+                debugger;
+                if (!targetRoom.passages[passage.targetPassage]) {
+                    //target room's passage doesn't exist
+                    return passageDesc + ' has an invalid targetPassage.';
+                }
+            }
+            else {
+                if (getTargetPassage(targetPassage) !== passage) {
+                    return passageDesc + ' doesn\'t have a mirrored target! Ensure that the passages target each other.';
+                }
+            }
+        }
+        else {
+            if (++exitCount > 1) {
+                return 'A maze must have exactly one exit!';
             }
         }
     }
 
     function validateItem(roomIndex, itemIndex) {
         var item = maze.rooms[roomIndex].items[itemIndex];
-        var itemDesc = 'item number ' + itemIndex + ' on room number: ' + roomIndex;
+        var itemDesc = 'item number: ' + itemIndex + ' on room number: ' + roomIndex;
+
         var error = validatePropertiesExist(item, ['type', 'name'], itemDesc);
         if (error) {
             return error;
         }
         if (item.type === 'treasure') {
+            if (typeof (item.wealth) !== 'number') {
+                return itemDesc + ' must be a number!';
+            }
+            if (Math.floor(item.wealth) !== item.wealth) {
+                return itemDesc + ' must be a whole number!';
+            }
             error = validatePropertiesExist(item, ['wealth'], itemDesc);
         }
         else if (item.type === 'threat') {
+            if (item.defeat === '') {
+                return itemDesc + ' defeat must not be empty!';
+            }
             error = validatePropertiesExist(item, ['defeat'], itemDesc);
         }
         else {
