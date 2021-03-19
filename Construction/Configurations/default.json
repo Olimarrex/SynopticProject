@@ -1,0 +1,59 @@
+{
+	"rooms": [
+		{
+			"items": [
+				{
+					"type": "treasure",
+					"name": "Gold",
+					"wealth": 100
+				},
+				{
+					"type": "threat",
+					"name": "Troll",
+					"defeat": "Club"
+				}
+			],
+			"passages": {
+				"east": {
+					"isExit": false,
+					"targetRoom": 1,
+					"targetPassage": "north"
+				},
+				"south": {
+					"isExit": false,
+					"targetRoom": 1,
+					"targetPassage": "west"
+				}
+			}
+		},
+		{
+			"items": [
+				{
+					"type": "treasure",
+					"name": "Silver",
+					"wealth": 50
+				},
+				{
+					"type": "threat",
+					"name": "Bomb",
+					"defeat": "Disarm"
+				}
+			],
+			"passages": {
+				"north": {
+					"isExit": false,
+					"targetRoom": 0,
+					"targetPassage": "east"
+				},
+				"east": {
+					"isExit": true
+				},
+				"west": {
+					"isExit": false,
+					"targetRoom": 0,
+					"targetPassage": "south"
+				}
+			}
+		}
+	]
+}

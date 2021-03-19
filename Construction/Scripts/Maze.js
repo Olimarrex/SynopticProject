@@ -1,5 +1,7 @@
+//Handler for mazes - performs validation, rendering, 
 'use strict';
 //#region typedefs
+//allows for intellisense of objects inside visual studio 2019
 /**@typedef {Object} passage
  * @property {bool} isExit
  * @property {number} targetRoom
@@ -23,18 +25,24 @@
 window.Maze = function (maze) {
     var self = this;
     //#region public properties
+
+    //validates that the maze config is fully valid.
+    //Returns null if no error, returns message if error.
     this.validate = function () {
         try {
             var error = validatePropertiesExist(maze, ['rooms'], 'maze');
             if (error) {
                 return error;
             }
+
             if (!Array.isArray(maze.rooms)) {
                 return 'the rooms property must be a list!';
             }
             if (maze.rooms.length === 0) {
                 return 'must have at least one room!';
             }
+
+            //validate rooms.
             for (var i = 0; i < maze.rooms.length; i++) {
                 error = validateRoom(i);
                 if (error) {
@@ -58,7 +66,30 @@ window.Maze = function (maze) {
         goToRoom(player.roomIndex);
     };
 
-    this.pause = function () { };
+    this.moveDirection = function (direction) {
+        //currentRoom
+        var currRoom = maze.rooms[player.roomIndex];
+        var passage = currRoom.passages[direction];
+        if (!passage) {
+            alert('You cannot go that way');
+            return;
+        }
+
+        if (!currRoom.items.some(function (item) { return item.type === 'threat' })) {
+            if (passage.isExit) {
+                alert('you found the exit! your current wealth: ' + player.wealth);
+                if (self.onWin) {
+                    self.onWin();
+                }
+            }
+            else {
+                goToRoom(passage.targetRoom);
+            }
+        }
+        else {
+            alert('you must defeat all threats before venturing forth');
+        }
+    }
 
     //expose only needed external info to keep maze encapsulated.
     this.getRoomCount = function () {
@@ -69,7 +100,7 @@ window.Maze = function (maze) {
         maze.rooms[roomIndex].items.push(item);
         if (player.roomIndex === roomIndex) {
             //render the item and add it.
-            var itemDivs = document.getElementById('itemHolder').appendChild(renderItem(roomIndex, maze.rooms[roomIndex].items.length - 1))
+            document.getElementById('itemHolder').appendChild(createItemElement(roomIndex, maze.rooms[roomIndex].items.length - 1));
         }
     };
 
@@ -78,6 +109,7 @@ window.Maze = function (maze) {
     var player;
     var exitCount = 0;
 
+    //moves the player to the room index specified and renders the room on the game screen.
     function goToRoom(roomIndex) {
         player.roomIndex = roomIndex;
 
@@ -96,7 +128,7 @@ window.Maze = function (maze) {
 
         //Render items
         for (var i = 0; i < room.items.length; i++) {
-            itemHolderDiv.appendChild(renderItem(roomIndex, i));
+            itemHolderDiv.appendChild(createItemElement(roomIndex, i));
         }
 
         //Render pasasges
@@ -104,21 +136,7 @@ window.Maze = function (maze) {
             var passageDiv = document.createElement('div');
             passageDiv.classList.add('passage', 'interactive', passageName);
             passageDiv.addEventListener('click', function () {
-                //If there are no threats
-                if (!room.items.some(function (item) { return item.type === 'threat' })) {
-                    if (passage.isExit) {
-                        alert('you found the exit! your current wealth: ' + player.wealth);
-                        if (self.onWin) {
-                            self.onWin();
-                        }
-                    }
-                    else {
-                        goToRoom(passage.targetRoom);
-                    }
-                }
-                else {
-                    alert('you must defeat all threats before venturing forth');
-                }
+                self.moveDirection(passageName);
             });
             roomDiv.appendChild(passageDiv);
         });
@@ -131,11 +149,13 @@ window.Maze = function (maze) {
         gameDiv.appendChild(roomDiv);
     }
 
-    function renderItem(roomIndex, itemIndex) {
+    //creates the item for appending onto the game screen - this includes attaching event listeners for interacting with said item.
+    function createItemElement(roomIndex, itemIndex) {
         var room = maze.rooms[roomIndex];
         var item = room.items[itemIndex];
         var itemDiv = document.createElement('div');
         itemDiv.classList.add('item', 'interactive', item.type);
+        itemDiv.title = item.name;
         itemDiv.addEventListener('click', function () {
             //index might have changed since - update variable.
             itemIndex = maze.rooms[roomIndex].items.indexOf(item);
@@ -148,13 +168,14 @@ window.Maze = function (maze) {
                 alert('picked up a ' + item.name + ' for ' + item.wealth + ' wealth, current wealth: ' + player.wealth);
             }
             else {
-                var killStr = prompt('how do you deal with the ' + item.name);
-                if (killStr != null) {
-                    if (killStr.toLowerCase() === item.defeat.toLowerCase()) {
-                        alert('you defeated the ' + item.name);
+                var defeatStr = prompt('how do you deal with the ' + item.name + '?');
+                //if user didn't cancel
+                if (defeatStr != null) {
+                    if (defeatStr.toLowerCase() === item.defeat.toLowerCase()) {
                         //remove from the screen & remove from maze object.
                         room.items.splice(itemIndex, 1);
-                        itemHolderDiv.children[itemIndex].remove()
+                        itemHolderDiv.children[itemIndex].remove();
+                        alert('you defeated the ' + item.name);
                     }
                     else {
                         alert('failed to defeat the ' + item.name);
@@ -166,7 +187,8 @@ window.Maze = function (maze) {
         return itemDiv;
     }
 
-    /**@param {room} room*/
+    //checks a room, the room's items, and the room's passages for any invalidities.
+    //Returns null if no error, returns message if error.
     function validateRoom(roomIndex) {
         var room = maze.rooms[roomIndex];
         var roomPrefix = 'room number: ' + roomIndex;
@@ -208,6 +230,8 @@ window.Maze = function (maze) {
         }
     }
 
+    //checks the passage is valid.
+    //Returns null if no error, returns message if error.
     function validatePassage(roomIndex, passageName) {
         var passage = maze.rooms[roomIndex].passages[passageName];
         var passageDesc = passageName + ' passage on room: ' + roomIndex;
@@ -217,7 +241,7 @@ window.Maze = function (maze) {
         }
         //Only need to check for other properties and target if isExit is false.
         if (!passage.isExit) {
-            error = validatePropertiesExist(passage, ['targetPassage', 'targetRoom'], passageDesc)
+            error = validatePropertiesExist(passage, ['targetPassage', 'targetRoom'], passageDesc);
             if (error) {
                 return error;
             }
@@ -250,6 +274,8 @@ window.Maze = function (maze) {
         }
     }
 
+    //checks the passage is valid.
+    //Returns null if no error, returns message if error.
     function validateItem(roomIndex, itemIndex) {
         var item = maze.rooms[roomIndex].items[itemIndex];
         var itemDesc = 'item number: ' + itemIndex + ' on room number: ' + roomIndex;
@@ -279,6 +305,7 @@ window.Maze = function (maze) {
         return error;
     }
 
+    //Checks the object to ensure the listed properties exist - if not returns an error message prefixed with the descPrefix passed in.
     function validatePropertiesExist(object, properties, descPrefix) {
         for (var i = 0; i < properties.length; i++) {
             if (!(properties[i] in object)) {
@@ -287,8 +314,9 @@ window.Maze = function (maze) {
         }
     }
 
-    /**@param {passage} passage
-     * @returns {passage}*/
+    /**gets the passage the passage passed as a parameter is targetting.
+     * @param {passage} passage
+     * @returns {passage} null if target passage doesn't exist*/
     function getTargetPassage(passage) {
         if (!maze.rooms[passage.targetRoom] || !maze.rooms[passage.targetRoom].passages[passage.targetPassage]) {
             return null;
@@ -298,7 +326,7 @@ window.Maze = function (maze) {
 
 
     /**loops through all passages and runs the specified on them.
-     * @param {any} passages dict of passages
+     * @param {any} passages dictionary of passages
      * @param {any} func function to run on each passage*/
     function forEachPassage(passages, func) {
         var keys = Object.keys(passages);

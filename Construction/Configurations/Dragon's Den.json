@@ -18,14 +18,6 @@
 					"isExit": false,
 					"targetRoom": 1,
 					"targetPassage": "north"
-				},
-				"south": {
-					"isExit": false,
-					"targetRoom": 1,
-					"targetPassage": "west"
-				},
-				"north": {
-					
 				}
 			}
 		},
@@ -33,13 +25,13 @@
 			"items": [
 				{
 					"type": "treasure",
-					"name": "Silver",
-					"wealth": 50
+					"name": "Dragon Hoard",
+					"wealth": 500
 				},
 				{
 					"type": "threat",
-					"name": "Bomb",
-					"defeat": "Disarm"
+					"name": "Dragon",
+					"defeat": "Freeze"
 				}
 			],
 			"passages": {
@@ -53,8 +45,34 @@
 				},
 				"west": {
 					"isExit": false,
-					"targetRoom": 0,
-					"targetPassage": "south"
+					"targetRoom": 2,
+					"targetPassage": "west"
+				}
+			}
+		},
+		{
+			"items": [
+				{
+					"type": "treasure",
+					"name": "Coins",
+					"wealth": 10
+				},
+				{
+					"type": "threat",
+					"name": "Troll Twin Ness",
+					"defeat": "Mallet"
+				},
+				{
+					"type": "threat",
+					"name": "Troll Twin Lucas",
+					"defeat": "Axe"
+				}
+			],
+			"passages": {
+				"west": {
+					"isExit": false,
+					"targetRoom": 1,
+					"targetPassage": "west"
 				}
 			}
 		}

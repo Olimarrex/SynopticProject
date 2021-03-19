@@ -1,7 +1,18 @@
 /*CSS specific to the menu screen.*/
+
 .menuButton {
     min-width: 50%;
-    font-size: 48px;
+    font-size: 68px;
+    background-image: url("../Assets/Button.png");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    image-rendering: pixelated;
+    padding: 15px;
+    font-family: segoe ui black;
+    font-family: minecraft;
+    color: #DB3D3D;
+    border: none;
+    outline: none;
 }
 
 .mainMenu {
@@ -13,6 +24,10 @@
     background-repeat: no-repeat;
     background-size: 100% 100%;
     image-rendering: pixelated;
+}
+
+.mainMenu > .menuButton {
+    margin: 5px;
 }
 
 button {
